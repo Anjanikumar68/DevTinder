@@ -1,37 +1,35 @@
 import express from "express";
+import connectDB from "./config/database.js";
+import User from "./model/user.js";
 
 const app = express();
 
-app.get("/user", (req, res) => {
-  res.send({ name: "kunal", age: 23 });
+app.post("/signup", async (req, res) => {
+  const user = new User({
+    firstName: "Kunal",
+    lastName: "Kumar",
+    emailId: "Kunal@gmail.com",
+    password: "Kunal@123",
+    age: "20",
+    gender: "male",
+  });
+
+  try {
+    await user.save();
+    res.send("user data saved successfully!");
+  } catch (err) {
+    res.status(400).send("error on user data saving" + err.message);
+  }
 });
 
-app.post("/user", (req, res) => {
-  res.send("data successfuly saved to the database");
-});
+connectDB()
+  .then(() => {
+    console.log("Database connection established!");
 
-let user = {
-  name: "kunal",
-  age: 23,
-};
-
-app.put("/user", (req, res) => {
-  user.name = "Anjani";
-  user.age = 25;
-
-  res.send(user);
-});
-
-app.patch("/user", (req, res) => {
-  user.name = "Jay";
-
-  res.send(user);
-});
-
-app.delete("/user", (req,res) => {
-  res.send("user delete sucessfully!");
-});
-
-app.listen(3000, () => {
-  console.log("server is running on port 3000 sucessfully!");
-});
+    app.listen(7777, () => {
+      console.log("Server is running on port 7777");
+    });
+  })
+  .catch((err) => {
+    console.error("Database connection failed:", err);
+  });
