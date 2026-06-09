@@ -58,15 +58,19 @@ app.delete("/user", async (req, res) => {
 
 //Update a user api
 app.patch("/user", async (req, res) => {
-  // const {userId, ...data} = req.body;
-  const userId = req.body.userId;
-  const data = req.body;
+  const { userId, ...data } = req.body;
+  // const userId = req.body.userId;
+  // const data = req.body;
+
   try {
-    const users = await User.findByIdAndUpdate(userId , data,  { new: true });
-    res.status(200).send( {
-      msg: 'Updated User Successfully', 
-      data: users
-    })
+    const users = await User.findByIdAndUpdate(userId, data, {
+      returnDocument: "after",
+      runValidators: true,
+    });
+    res.status(200).send({
+      msg: "Updated User Successfully",
+      data: users,
+    });
   } catch (err) {
     res.status(400).send("Something went Wrong!");
   }
