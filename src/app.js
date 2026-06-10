@@ -1,11 +1,11 @@
 import express from "express";
 import connectDB from "./config/database.js";
 import User from "./model/user.js";
-import user from "./model/user.js";
 
 const app = express();
 app.use(express.json());
 
+// signup upi
 app.post("/signup", async (req, res) => {
   const user = new User(req.body);
 
@@ -57,7 +57,7 @@ app.delete("/user", async (req, res) => {
 });
 
 //Update a user api
-app.patch("/user", async (req, res) => {
+app.patch("/user:/userId", async (req, res) => {
   const userId = req.params?.userId;
   const data = req.body;
 

@@ -1,4 +1,5 @@
 import mongoose, { SchemaType } from "mongoose";
+import validator from "validator";
 
 const userSchema = new mongoose.Schema(
   {
@@ -15,17 +16,27 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       lowercase: true,
-      unique:true,
+      unique: true,
       trim: true,
+      validator(value) {
+        if (!validator.isEmail(value)) {
+          throw new Error("Invalid email address:" + value);
+        }
+      },
     },
     password: {
       type: String,
       required: true,
+      validator(value) {
+        if (!validator.isStrongPassword(value)) {
+          throw new Error("Enter a Strong Password:" + value);
+        }
+      },
     },
     age: {
       type: Number,
       required: true,
-      min:18,
+      min: 18,
     },
     gender: {
       type: String,
@@ -36,12 +47,17 @@ const userSchema = new mongoose.Schema(
       type: String,
       default:
         "https://static.vecteezy.com/system/resources/previews/045/711/185/non_2x/male-profile-picture-placeholder-for-social-media-forum-dating-site-chat-operator-design-social-profile-template-default-avatar-icon-flat-style-free-vector.jpg",
+      validator(value) {
+        if (!validator.isURL(value)) {
+          throw new Error("Invalid Photo Url:" + value);
+        }
+      },
     },
     about: {
       type: String,
       default: "This is the default about of the user!",
     },
-    skills:{
+    skills: {
       type: [String],
     },
   },
