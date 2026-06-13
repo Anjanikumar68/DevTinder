@@ -1,19 +1,65 @@
 import express from "express";
 import connectDB from "./config/database.js";
 import User from "./model/user.js";
+import {
+  validateSignUpData,
+  validateLoginData,
+  validateEditProfileData
+} from "./utils/validation.js";
+import bcrypt from "bcrypt";
 
 const app = express();
 app.use(express.json());
 
-// signup upi
+// signup Api
 app.post("/signup", async (req, res) => {
-  const user = new User(req.body);
-
   try {
+    //validation the data
+    validateSignUpData(req);
+
+    // const { password } = req.body;
+    const { firstName, lastName, emailId, password } = req.body;
+
+    //Encrypt the password
+    const passwordHasd = await bcrypt.hash(password, 10);
+
+    //Create a new instance of the User model
+    const user = new User({
+      firstName,
+      lastName,
+      emailId,
+      password: passwordHasd,
+    });
+
     await user.save();
-    res.send("user data saved successfully!");
+    res.send("user data. saved successfully!");
   } catch (err) {
-    res.status(400).send("error on user data saving" + err.message);
+    res.status(400).send("Error :" + err.message);
+  }
+});
+
+// Login Api
+app.post("/login", async (req, res) => {
+  try {
+    const { emailId, password } = req.body;
+    //validation the data
+    validateLoginData(req);
+    
+    const user = await User.findOne({emailId:emailId});
+    if(!user){
+      throw new Error("Invalid Credentials");
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if(isPasswordValid){
+      res.send("Login Successfuly!!");
+    } else {
+      throw new Error("Invalid Credentials");
+    }
+
+  } catch (err) {
+    res.status(400).send("Error :" + err.message);
   }
 });
 
@@ -57,24 +103,13 @@ app.delete("/user", async (req, res) => {
 });
 
 //Update a user api
-app.patch("/user:/userId", async (req, res) => {
-  const userId = req.params?.userId;
-  const data = req.body;
-
+app.patch("/user/:userId", async (req, res) => {
   try {
-    const ALLOWED_UPDATES = ["photoUrl", "about", "gender", "age", "skills"];
+    const userId = req.params.userId;
+    const data = req.body;
 
-    const isUpdateAllowed = Object.keys(data).every((k) => {
-      ALLOWED_UPDATES.includes(k);
-    });
-
-    if (!isUpdateAllowed) {
-      throw new Error("Update not allowed");
-    }
-
-    if (data?.skills.length > 10) {
-      throw new Error("String cannot be more then 10");
-    }
+    //validation the data
+    validateEditProfileData(req);
 
     const users = await User.findByIdAndUpdate({ _id: userId }, data, {
       returnDocument: "after",
